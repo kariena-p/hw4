@@ -293,6 +293,7 @@ protected:
     void clearSubtrees (Node<Key, Value>* n);
     int getHeight(Node<Key, Value>* n) const;
     bool balanceHelper(Node<Key, Value>* n) const;
+    void removeNode(Node<Key, Value>* n);
 
 protected:
     //ptr to root node 
@@ -582,6 +583,43 @@ void BinarySearchTree<Key, Value>::insert(const std::pair<const Key, Value> &key
     
 }
 
+//my helper function to remove a single node 
+template <typename Key, typename Value>
+void BinarySearchTree<Key, Value>::removeNode(Node<Key, Value>* n) {
+  //BC nullptr
+  if (n==nullptr) return;
+
+  Node<Key, Value>* parent = n->getParent();
+  Node<Key, Value>* lChild = n->getLeft();
+  Node<Key, Value>* rChild = n->getRight();
+
+  // Case 1 : leaf
+  if (lChild == nullptr && rChild == nullptr) {
+      if (parent == nullptr) { // deleting root only node
+          root_ = nullptr;
+      } else {
+          if (parent->getLeft() == n) parent->setLeft(nullptr);
+          else parent->setRight(nullptr);
+      }
+      delete n;
+      return;
+  }
+
+  // Case2 : 1 child
+  Node<Key, Value>* child = (lChild != nullptr) ? lChild : rChild;
+  if (parent == nullptr) { // n is root
+      root_ = child;
+      child->setParent(nullptr);
+  } else {
+      if (parent->getLeft() == n) parent->setLeft(child);
+      else parent->setRight(child);
+      child->setParent(parent);
+  }
+
+
+  delete n;
+  return;
+}
 
 /**
 * A remove method to remove a specific key from a Binary Search Tree.
@@ -664,10 +702,21 @@ void BinarySearchTree<Key, Value>::remove(const Key& key)
     }
         //subcase 3: 2 children - swap w predecessor then remove 
     else {
-        Node<Key, Value>* pred = predecessor(n);
-        nodeSwap(n, pred); 
-        remove(pred->getKey());
-        return; 
+        // Save original key
+      Key delKey = n->getKey();
+
+      // Find predecessor (this node always has <=1 child)
+      Node<Key, Value>* pred = predecessor(n);
+
+      // Swap nodes in the tree
+      nodeSwap(n, pred);
+
+      // After swap, either n or pred contains delKey — find which one
+      Node<Key, Value>* toDelete = (n->getKey() == delKey ? n : pred);
+
+      // Remove the node that now contains the original key
+      removeNode(toDelete);
+      return;
     }
 }
 
