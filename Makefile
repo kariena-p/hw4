@@ -1,7 +1,7 @@
 CXX=g++
 CXXFLAGS=-g -Wall -std=c++11 
 # Uncomment for parser DEBUG
-#DEFS=-DDEBUG
+# DEFS=-DDEBUG
 
 
 all: bst-test equal-paths-test
